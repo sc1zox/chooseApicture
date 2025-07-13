@@ -44,6 +44,7 @@ export const handler: Handler = async (event: { httpMethod: string; body: any; }
             success: true,
             orders: [],
             totalOrders: 0,
+            productStats: {},
             lastUpdated: new Date().toISOString()
           })
         };
@@ -63,10 +64,43 @@ export const handler: Handler = async (event: { httpMethod: string; body: any; }
 
       const submissions = await submissionsResponse.json();
       
+      // Produktstatistiken berechnen
+      const productStats: { [key: string]: { count: number; title: string; price: string } } = {};
+      
       // Submissions in Order-Format umwandeln
       const orders = submissions.map((submission: any) => {
         const data = submission.data;
         const createdAt = new Date(submission.created_at);
+        
+        const selectedProducts = data['selected-products'] ? JSON.parse(data['selected-products']) : [];
+        const selectedProductsDetails = data['selected-products-details'] ? JSON.parse(data['selected-products-details']) : [];
+        
+        // Produktstatistiken aktualisieren
+        selectedProductsDetails.forEach((product: any) => {
+          const productId = product.id || selectedProducts.find((id: number) => {
+            // Fallback: Produkt-ID basierend auf Titel finden
+            const productTitles = [
+              'Dual-Port Bit Driver',
+              'Analog Audio Control Hub', 
+              'Laser Range Unit',
+              'Smart Object Desk Set',
+              'Modular Synth Box',
+              'Compact Action Camera'
+            ];
+            return productTitles[id - 1] === product.title;
+          });
+          
+          if (productId) {
+            if (!productStats[productId]) {
+              productStats[productId] = {
+                count: 0,
+                title: product.title,
+                price: product.price
+              };
+            }
+            productStats[productId].count++;
+          }
+        });
         
         return {
           id: submission.id,
@@ -75,8 +109,8 @@ export const handler: Handler = async (event: { httpMethod: string; body: any; }
           email: data.email || '',
           phone: data.phone || '',
           message: data.message || '',
-          selectedProducts: data['selected-products'] ? JSON.parse(data['selected-products']) : [],
-          selectedProductsDetails: data['selected-products-details'] ? JSON.parse(data['selected-products-details']) : [],
+          selectedProducts: selectedProducts,
+          selectedProductsDetails: selectedProductsDetails,
           totalAmount: parseFloat(data['total-amount']) || 0,
           timestamp: submission.created_at,
           formattedDate: createdAt.toLocaleString('de-DE'),
@@ -91,6 +125,7 @@ export const handler: Handler = async (event: { httpMethod: string; body: any; }
           success: true,
           orders: orders,
           totalOrders: orders.length,
+          productStats: productStats,
           lastUpdated: new Date().toISOString()
         })
       };

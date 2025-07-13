@@ -242,7 +242,14 @@ const products = [
             submitBtn.disabled = true;
 
             const formData = new FormData(e.target as HTMLFormElement);
-            const selectedProductsDetails = selectedProducts.map(id => products.find(p => p.id === id));
+            const selectedProductsDetails = selectedProducts.map(id => {
+                const product = products.find(p => p.id === id);
+                return {
+                    id: product?.id,
+                    title: product?.title,
+                    price: product?.price
+                };
+            });
             const totalAmount = calculateTotal();
 
             const orderData = {
