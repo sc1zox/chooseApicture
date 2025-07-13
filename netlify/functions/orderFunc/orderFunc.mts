@@ -129,7 +129,7 @@ export const handler: Handler = async (event: { httpMethod: string; body: any; }
     try {
       const data = JSON.parse(event.body || '{}');
 
-      if (!data.name || !data.email || !data.selectedImage) {
+      if (!data.email || !data.selectedImage) {
         return {
           statusCode: 400,
           headers: corsHeaders,
