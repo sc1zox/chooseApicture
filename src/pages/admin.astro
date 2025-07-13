@@ -243,10 +243,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             orders.forEach(order => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.orderNumber}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.selectedImageDetails?.title || `Bild ${order.selectedImage}`}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.name}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.email}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.selectedImageDetails?.title || `Bild ${order.selectedImage}`}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.orderNumber}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.formattedDate}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button class="text-blue-600 hover:text-blue-900 view-order" data-order-id="${order.id}">
