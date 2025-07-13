@@ -44,7 +44,7 @@ export const handler: Handler = async (event: { httpMethod: string; body: any; }
             success: true,
             orders: [],
             totalOrders: 0,
-            productStats: {},
+            imageStats: {},
             lastUpdated: new Date().toISOString()
           })
         };
@@ -64,43 +64,28 @@ export const handler: Handler = async (event: { httpMethod: string; body: any; }
 
       const submissions = await submissionsResponse.json();
       
-      // Produktstatistiken berechnen
-      const productStats: { [key: string]: { count: number; title: string; price: string } } = {};
+      // Bildstatistiken berechnen
+      const imageStats: { [key: string]: { count: number; title: string } } = {};
       
       // Submissions in Order-Format umwandeln
       const orders = submissions.map((submission: any) => {
         const data = submission.data;
         const createdAt = new Date(submission.created_at);
         
-        const selectedProducts = data['selected-products'] ? JSON.parse(data['selected-products']) : [];
-        const selectedProductsDetails = data['selected-products-details'] ? JSON.parse(data['selected-products-details']) : [];
+        const selectedImage = data['selected-image'] ? parseInt(data['selected-image']) : null;
+        const selectedImageDetails = data['selected-image-details'] ? JSON.parse(data['selected-image-details']) : null;
         
-        // Produktstatistiken aktualisieren
-        selectedProductsDetails.forEach((product: any) => {
-          const productId = product.id || selectedProducts.find((id: number) => {
-            // Fallback: Produkt-ID basierend auf Titel finden
-            const productTitles = [
-              'Dual-Port Bit Driver',
-              'Analog Audio Control Hub', 
-              'Laser Range Unit',
-              'Smart Object Desk Set',
-              'Modular Synth Box',
-              'Compact Action Camera'
-            ];
-            return productTitles[id - 1] === product.title;
-          });
-          
-          if (productId) {
-            if (!productStats[productId]) {
-              productStats[productId] = {
-                count: 0,
-                title: product.title,
-                price: product.price
-              };
-            }
-            productStats[productId].count++;
+        // Bildstatistiken aktualisieren
+        if (selectedImage && selectedImageDetails) {
+          const imageId = selectedImage.toString();
+          if (!imageStats[imageId]) {
+            imageStats[imageId] = {
+              count: 0,
+              title: selectedImageDetails.title || `Bild ${selectedImage}`
+            };
           }
-        });
+          imageStats[imageId].count++;
+        }
         
         return {
           id: submission.id,
@@ -109,9 +94,8 @@ export const handler: Handler = async (event: { httpMethod: string; body: any; }
           email: data.email || '',
           phone: data.phone || '',
           message: data.message || '',
-          selectedProducts: selectedProducts,
-          selectedProductsDetails: selectedProductsDetails,
-          totalAmount: parseFloat(data['total-amount']) || 0,
+          selectedImage: selectedImage,
+          selectedImageDetails: selectedImageDetails,
           timestamp: submission.created_at,
           formattedDate: createdAt.toLocaleString('de-DE'),
           netlifyId: submission.id
@@ -125,7 +109,7 @@ export const handler: Handler = async (event: { httpMethod: string; body: any; }
           success: true,
           orders: orders,
           totalOrders: orders.length,
-          productStats: productStats,
+          imageStats: imageStats,
           lastUpdated: new Date().toISOString()
         })
       };
@@ -148,7 +132,7 @@ export const handler: Handler = async (event: { httpMethod: string; body: any; }
     try {
       const data = JSON.parse(event.body || '{}');
 
-      if (!data.name || !data.email || !data.selectedProducts || data.selectedProducts.length === 0) {
+      if (!data.name || !data.email || !data.selectedImage) {
         return {
           statusCode: 400,
           headers: corsHeaders,
@@ -164,9 +148,8 @@ export const handler: Handler = async (event: { httpMethod: string; body: any; }
         email: data.email,
         phone: data.phone || '',
         message: data.message || '',
-        selectedProducts: data.selectedProducts,
-        selectedProductsDetails: data.selectedProductsDetails || [],
-        totalAmount: data.totalAmount || 0,
+        selectedImage: data.selectedImage,
+        selectedImageDetails: data.selectedImageDetails || {},
         orderNumber: orderNumber
       };
 
@@ -177,9 +160,8 @@ export const handler: Handler = async (event: { httpMethod: string; body: any; }
       formData.append('email', order.email);
       formData.append('phone', order.phone);
       formData.append('message', order.message);
-      formData.append('selected-products', JSON.stringify(order.selectedProducts));
-      formData.append('selected-products-details', JSON.stringify(order.selectedProductsDetails));
-      formData.append('total-amount', order.totalAmount.toString());
+      formData.append('selected-image', order.selectedImage.toString());
+      formData.append('selected-image-details', JSON.stringify(order.selectedImageDetails));
       formData.append('order-number', order.orderNumber);
 
       const netlifyResponse = await fetch(`${process.env.URL}/`, {

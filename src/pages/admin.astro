@@ -4,19 +4,25 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
 <BaseLayout>
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-8">Admin Dashboard - Bestellungen</h1>
+        <h1 class="text-3xl font-bold mb-8">Admin Dashboard - Bildbestellungen</h1>
+
+        <!-- Bildstatistiken Grafik -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Bildstatistiken - Bestellübersicht</h2>
+            <div id="image-chart" class="mb-4">
+                <div id="chart-loading" class="text-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                    <p class="mt-2 text-sm text-gray-600">Lade Statistiken...</p>
+                </div>
+            </div>
+        </div>
 
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-semibold">Übersicht</h2>
-                <div class="flex gap-2">
-                    <button id="product-stats-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                        Produktstatistiken
-                    </button>
-                    <button id="refresh-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                        Aktualisieren
-                    </button>
-                </div>
+                <button id="refresh-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Aktualisieren
+                </button>
             </div>
             <div id="stats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div class="bg-blue-100 p-4 rounded">
@@ -61,10 +67,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                                 E-Mail
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Produkte
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Gesamtbetrag
+                                Gewähltes Bild
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Datum
@@ -82,23 +85,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
             <div id="no-orders" class="hidden text-center py-8">
                 <p class="text-gray-500">Noch keine Bestellungen vorhanden.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Product Statistics Modal -->
-    <div id="product-stats-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
-        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-            <div class="mt-3">
-                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Produktstatistiken</h3>
-                <div id="product-stats-content" class="text-sm text-gray-500 max-h-96 overflow-y-auto">
-                    <!-- Product stats will be populated here -->
-                </div>
-                <div class="flex justify-end mt-4">
-                    <button id="close-product-stats-modal" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-700">
-                        Schließen
-                    </button>
-                </div>
             </div>
         </div>
     </div>
@@ -128,24 +114,22 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         email: string;
         phone: string;
         message: string;
-        selectedProducts: number[];
-        selectedProductsDetails: any[];
-        totalAmount: number;
+        selectedImage: number;
+        selectedImageDetails: any;
         timestamp: string;
         formattedDate: string;
         netlifyId?: string;
     }
 
-    interface ProductStats {
+    interface ImageStats {
         [key: string]: {
             count: number;
             title: string;
-            price: string;
         };
     }
 
     let orders: Order[] = [];
-    let productStats: ProductStats = {};
+    let imageStats: ImageStats = {};
 
     function showError(message: string) {
         const errorDiv = document.getElementById('error-message')!;
@@ -157,6 +141,46 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         setTimeout(() => {
             errorDiv.classList.add('hidden');
         }, 8000);
+    }
+
+    function createImageChart() {
+        const chartContainer = document.getElementById('image-chart')!;
+        document.getElementById('chart-loading')?.classList.add('hidden');
+
+        if (Object.keys(imageStats).length === 0) {
+            chartContainer.innerHTML = '<p class="text-center text-gray-500 py-8">Keine Daten für Statistiken verfügbar.</p>';
+            return;
+        }
+
+        // Sortiere Bilder nach ID
+        const sortedImages = Object.entries(imageStats).sort(([a], [b]) => parseInt(a) - parseInt(b));
+        const maxCount = Math.max(...sortedImages.map(([, stats]) => stats.count));
+
+        const chartHTML = `
+            <div class="space-y-4">
+                <div class="text-center text-sm text-gray-600 mb-4">
+                    Anzahl Bestellungen pro Bild (Insgesamt: ${sortedImages.reduce((sum, [, stats]) => sum + stats.count, 0)})
+                </div>
+                ${sortedImages.map(([imageId, stats]) => {
+                    const percentage = maxCount > 0 ? (stats.count / maxCount) * 100 : 0;
+                    return `
+                        <div class="flex items-center">
+                            <div class="w-20 text-sm font-medium text-gray-700">${stats.title}</div>
+                            <div class="flex-1 mx-4">
+                                <div class="bg-gray-200 rounded-full h-6 relative">
+                                    <div class="bg-blue-600 h-6 rounded-full flex items-center justify-center text-white text-sm font-medium" 
+                                         style="width: ${Math.max(percentage, 10)}%">
+                                        ${stats.count}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+
+        chartContainer.innerHTML = chartHTML;
     }
 
     async function loadOrders() {
@@ -181,8 +205,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
             if (data.success) {
                 orders = data.orders || [];
-                productStats = data.productStats || {};
+                imageStats = data.imageStats || {};
                 updateUI(data);
+                createImageChart();
             } else {
                 throw new Error(data.error || 'Unbekannter Fehler');
             }
@@ -221,8 +246,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.orderNumber}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.name}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.email}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.selectedProductsDetails.length} Produkte</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$${order.totalAmount.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.selectedImageDetails?.title || `Bild ${order.selectedImage}`}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.formattedDate}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button class="text-blue-600 hover:text-blue-900 view-order" data-order-id="${order.id}">
@@ -244,51 +268,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         document.getElementById('loading')?.classList.add('hidden');
     }
 
-    function showProductStats() {
-        const statsContent = document.getElementById('product-stats-content')!;
-        
-        if (Object.keys(productStats).length === 0) {
-            statsContent.innerHTML = '<p class="text-center text-gray-500">Keine Produktstatistiken verfügbar.</p>';
-        } else {
-            // Sortiere Produkte nach Anzahl der Bestellungen (absteigend)
-            const sortedProducts = Object.entries(productStats)
-                .sort(([,a], [,b]) => b.count - a.count);
-
-            const totalProductsSold = sortedProducts.reduce((sum, [, product]) => sum + product.count, 0);
-
-            statsContent.innerHTML = `
-                <div class="mb-6">
-                    <h4 class="font-semibold text-gray-900 mb-2">Zusammenfassung</h4>
-                    <p class="text-sm text-gray-600">Insgesamt verkaufte Produkte: <span class="font-medium">${totalProductsSold}</span></p>
-                </div>
-                <div class="space-y-4">
-                    ${sortedProducts.map(([productId, product]) => {
-                        const percentage = totalProductsSold > 0 ? (product.count / totalProductsSold * 100).toFixed(1) : 0;
-                        return `
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <div class="flex justify-between items-start mb-2">
-                                    <div>
-                                        <h5 class="font-medium text-gray-900">${product.title}</h5>
-                                        <p class="text-sm text-gray-600">${product.price}</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-lg font-bold text-blue-600">${product.count}x</p>
-                                        <p class="text-sm text-gray-500">${percentage}%</p>
-                                    </div>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-blue-600 h-2 rounded-full" style="width: ${percentage}%"></div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
-        }
-
-        document.getElementById('product-stats-modal')?.classList.remove('hidden');
-    }
-
     function showOrderDetails(orderId: string) {
         const order = orders.find(o => o.id === orderId);
         if (!order) return;
@@ -300,24 +279,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                     <h4 class="font-semibold text-gray-900 mb-2">Bestellinformationen</h4>
                     <p><strong>Bestellnummer:</strong> ${order.orderNumber}</p>
                     <p><strong>Datum:</strong> ${order.formattedDate}</p>
-                    <p><strong>Gesamtbetrag:</strong> $${order.totalAmount.toFixed(2)}</p>
+                    <p><strong>Gewähltes Bild:</strong> ${order.selectedImageDetails?.title || `Bild ${order.selectedImage}`}</p>
                 </div>
                 <div>
                     <h4 class="font-semibold text-gray-900 mb-2">Kontaktdaten</h4>
                     <p><strong>Name:</strong> ${order.name}</p>
                     <p><strong>E-Mail:</strong> ${order.email}</p>
                     <p><strong>Telefon:</strong> ${order.phone || 'Nicht angegeben'}</p>
-                </div>
-            </div>
-            <div class="mt-6">
-                <h4 class="font-semibold text-gray-900 mb-2">Ausgewählte Produkte</h4>
-                <div class="bg-gray-50 p-3 rounded">
-                    ${order.selectedProductsDetails.map(product => `
-                        <div class="flex justify-between items-center py-1">
-                            <span>${product.title}</span>
-                            <span class="font-medium">${product.price}</span>
-                        </div>
-                    `).join('')}
                 </div>
             </div>
             ${order.message ? `
@@ -336,27 +304,15 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
         // Event listeners
         document.getElementById('refresh-btn')?.addEventListener('click', loadOrders);
-        
-        document.getElementById('product-stats-btn')?.addEventListener('click', showProductStats);
 
         document.getElementById('close-modal')?.addEventListener('click', () => {
             document.getElementById('order-modal')?.classList.add('hidden');
         });
 
-        document.getElementById('close-product-stats-modal')?.addEventListener('click', () => {
-            document.getElementById('product-stats-modal')?.classList.add('hidden');
-        });
-
-        // Close modals when clicking outside
+        // Close modal when clicking outside
         document.getElementById('order-modal')?.addEventListener('click', (e) => {
             if (e.target === e.currentTarget) {
                 document.getElementById('order-modal')?.classList.add('hidden');
-            }
-        });
-
-        document.getElementById('product-stats-modal')?.addEventListener('click', (e) => {
-            if (e.target === e.currentTarget) {
-                document.getElementById('product-stats-modal')?.classList.add('hidden');
             }
         });
     });

@@ -7,49 +7,13 @@ import p4 from "../assets/4.webp";
 import p5 from "../assets/5.webp";
 import p6 from "../assets/6.webp";
 
-const products = [
-    {
-        id: 1,
-        title: "Dual-Port Bit Driver",
-        subtitle: "Cobalt blue CNC finish",
-        price: "$59",
-        image: p1,
-    },
-    {
-        id: 2,
-        title: "Analog Audio Control Hub",
-        subtitle: "Soft matte with ring LEDs",
-        price: "$79",
-        image: p2,
-    },
-    {
-        id: 3,
-        title: "Laser Range Unit",
-        subtitle: "Black anodized edge + sensor",
-        price: "$110",
-        image: p3,
-    },
-    {
-        id: 4,
-        title: "Smart Object Desk Set",
-        subtitle: "Minimalist modular kit",
-        price: "$129",
-        image: p4,
-    },
-    {
-        id: 5,
-        title: "Modular Synth Box",
-        subtitle: "Magnetic knobs, dual input",
-        price: "$149",
-        image: p5,
-    },
-    {
-        id: 6,
-        title: "Compact Action Camera",
-        subtitle: "Transparent shell, neon ring",
-        price: "$189",
-        image: p6,
-    },
+const images = [
+    { id: 1, title: "Bild 1", image: p1 },
+    { id: 2, title: "Bild 2", image: p2 },
+    { id: 3, title: "Bild 3", image: p3 },
+    { id: 4, title: "Bild 4", image: p4 },
+    { id: 5, title: "Bild 5", image: p5 },
+    { id: 6, title: "Bild 6", image: p6 },
 ];
 ---
 
@@ -59,46 +23,38 @@ const products = [
     <input type="email" name="email" />
     <input type="tel" name="phone" />
     <textarea name="message"></textarea>
-    <input type="text" name="selected-products" />
-    <input type="text" name="selected-products-details" />
-    <input type="text" name="total-amount" />
+    <input type="text" name="selected-image" />
+    <input type="text" name="selected-image-details" />
     <input type="text" name="order-number" />
 </form>
 
 <section>
     <div class="grid grid-cols-1 gap-6 lg:gap-y-24 md:grid-cols-2 lg:grid-cols-3 py-12">
-        {products.map((product) => (
-                <figure class="relative cursor-pointer product-item" data-product-id={product.id}>
-                    <Image
-                            width="800"
-                            height="800"
-                            alt={product.title}
-                            src={product.image}
-                            class="w-full rounded-3xl shadow aspect-12/9 object-cover object-center transition-all duration-300 hover:shadow-lg"
-                    />
-                    <div class="mt-2 flex justify-between px-6">
-                        <div>
-                            <p class="mt-1 text-sm font-medium text-base-900">
-                                {product.subtitle}
-                            </p>
-                            <h3 class="text-xs text-base-500">{product.title}</h3>
-                        </div>
-                        <p class="text-base text-orange-600">{product.price}</p>
-                    </div>
-                    <div class="selection-indicator absolute top-2 right-2 w-8 h-8 bg-orange-600 rounded-full flex items-center justify-center opacity-0 transition-opacity duration-300">
-                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                        </svg>
-                    </div>
-                </figure>
+        {images.map((image) => (
+            <figure class="relative cursor-pointer image-item" data-image-id={image.id}>
+                <Image
+                    width="800"
+                    height="800"
+                    alt={image.title}
+                    src={image.image}
+                    class="w-full rounded-3xl shadow aspect-12/9 object-cover object-center transition-all duration-300 hover:shadow-lg"
+                />
+                <div class="mt-2 text-center px-6">
+                    <h3 class="text-lg font-medium text-base-900">{image.title}</h3>
+                </div>
+                <div class="selection-indicator absolute top-2 right-2 w-8 h-8 bg-orange-600 rounded-full flex items-center justify-center opacity-0 transition-opacity duration-300">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+            </figure>
         ))}
     </div>
 
-    <!-- Ausgewählte Bilder anzeigen -->
-    <div id="selected-items" class="mt-8 hidden">
-        <h3 class="text-lg font-semibold mb-4">Ausgewählte Bilder:</h3>
-        <div id="selected-list" class="flex flex-wrap gap-4 mb-6"></div>
-        <div id="total-amount" class="text-lg font-semibold mb-4"></div>
+    <!-- Ausgewähltes Bild anzeigen -->
+    <div id="selected-item" class="mt-8 hidden">
+        <h3 class="text-lg font-semibold mb-4">Ausgewähltes Bild:</h3>
+        <div id="selected-display" class="bg-gray-100 p-4 rounded mb-6 text-center"></div>
     </div>
 
     <!-- Kontaktformular -->
@@ -142,52 +98,34 @@ const products = [
 </section>
 
 <script>
-    interface Product {
+    interface ImageItem {
         id: number;
         title: string;
-        subtitle: string;
-        price: string;
         image: string;
     }
 
-    const products: Product[] = [
-        { id: 1, title: "Dual-Port Bit Driver", subtitle: "Cobalt blue CNC finish", price: "$59", image: "" },
-        { id: 2, title: "Analog Audio Control Hub", subtitle: "Soft matte with ring LEDs", price: "$79", image: "" },
-        { id: 3, title: "Laser Range Unit", subtitle: "Black anodized edge + sensor", price: "$110", image: "" },
-        { id: 4, title: "Smart Object Desk Set", subtitle: "Minimalist modular kit", price: "$129", image: "" },
-        { id: 5, title: "Modular Synth Box", subtitle: "Magnetic knobs, dual input", price: "$149", image: "" },
-        { id: 6, title: "Compact Action Camera", subtitle: "Transparent shell, neon ring", price: "$189", image: "" },
+    const images: ImageItem[] = [
+        { id: 1, title: "Bild 1", image: "" },
+        { id: 2, title: "Bild 2", image: "" },
+        { id: 3, title: "Bild 3", image: "" },
+        { id: 4, title: "Bild 4", image: "" },
+        { id: 5, title: "Bild 5", image: "" },
+        { id: 6, title: "Bild 6", image: "" },
     ];
 
-    let selectedProducts: number[] = [];
+    let selectedImageId: number | null = null;
 
-    function calculateTotal(): number {
-        return selectedProducts.reduce((total, id) => {
-            const product = products.find(p => p.id === id);
-            if (product) {
-                const price = parseFloat(product.price.replace('$', ''));
-                return total + price;
-            }
-            return total;
-        }, 0);
-    }
-
-    function toggleSelection(productId: number): void {
-        const index = selectedProducts.indexOf(productId);
-        if (index > -1) {
-            selectedProducts.splice(index, 1);
-        } else {
-            selectedProducts.push(productId);
-        }
+    function selectImage(imageId: number): void {
+        selectedImageId = imageId;
         updateUI();
     }
 
     function updateUI(): void {
         // Update selection indicators
-        document.querySelectorAll('.product-item').forEach(item => {
-            const productId = parseInt(item.getAttribute('data-product-id') || '0');
+        document.querySelectorAll('.image-item').forEach(item => {
+            const imageId = parseInt(item.getAttribute('data-image-id') || '0');
             const indicator = item.querySelector('.selection-indicator');
-            if (selectedProducts.includes(productId)) {
+            if (imageId === selectedImageId) {
                 item.classList.add('selected');
                 indicator?.classList.remove('opacity-0');
             } else {
@@ -196,39 +134,33 @@ const products = [
             }
         });
 
-        // Update selected items display
-        const selectedItemsDiv = document.getElementById('selected-items');
-        const selectedList = document.getElementById('selected-list');
-        const totalAmountDiv = document.getElementById('total-amount');
+        // Update selected item display
+        const selectedItemDiv = document.getElementById('selected-item');
+        const selectedDisplay = document.getElementById('selected-display');
         const contactForm = document.getElementById('contact-form');
 
-        if (selectedProducts.length > 0) {
-            selectedItemsDiv?.classList.remove('hidden');
+        if (selectedImageId !== null) {
+            selectedItemDiv?.classList.remove('hidden');
             contactForm?.classList.remove('hidden');
 
-            if (selectedList) {
-                selectedList.innerHTML = selectedProducts.map(id => {
-                    const product = products.find(p => p.id === id);
-                    return `<div class="bg-gray-100 p-2 rounded text-sm">${product?.title} - ${product?.price}</div>`;
-                }).join('');
-            }
-
-            const total = calculateTotal();
-            if (totalAmountDiv) {
-                totalAmountDiv.textContent = `Gesamtbetrag: $${total.toFixed(2)}`;
+            const selectedImage = images.find(img => img.id === selectedImageId);
+            if (selectedDisplay && selectedImage) {
+                selectedDisplay.innerHTML = `
+                    <div class="font-medium text-lg">${selectedImage.title}</div>
+                `;
             }
         } else {
-            selectedItemsDiv?.classList.add('hidden');
+            selectedItemDiv?.classList.add('hidden');
             contactForm?.classList.add('hidden');
         }
     }
 
     // Event listeners
     document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.product-item').forEach(item => {
+        document.querySelectorAll('.image-item').forEach(item => {
             item.addEventListener('click', () => {
-                const productId = parseInt(item.getAttribute('data-product-id') || '0');
-                toggleSelection(productId);
+                const imageId = parseInt(item.getAttribute('data-image-id') || '0');
+                selectImage(imageId);
             });
         });
 
@@ -236,30 +168,30 @@ const products = [
         document.getElementById('order-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            if (selectedImageId === null) {
+                alert('Bitte wählen Sie ein Bild aus.');
+                return;
+            }
+
             const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
             const originalText = submitBtn.textContent;
             submitBtn.textContent = 'Wird gesendet...';
             submitBtn.disabled = true;
 
             const formData = new FormData(e.target as HTMLFormElement);
-            const selectedProductsDetails = selectedProducts.map(id => {
-                const product = products.find(p => p.id === id);
-                return {
-                    id: product?.id,
-                    title: product?.title,
-                    price: product?.price
-                };
-            });
-            const totalAmount = calculateTotal();
+            const selectedImage = images.find(img => img.id === selectedImageId);
+            const selectedImageDetails = {
+                id: selectedImage?.id,
+                title: selectedImage?.title
+            };
 
             const orderData = {
                 name: formData.get('name'),
                 email: formData.get('email'),
                 phone: formData.get('phone'),
                 message: formData.get('message'),
-                selectedProducts: selectedProducts,
-                selectedProductsDetails: selectedProductsDetails,
-                totalAmount: totalAmount
+                selectedImage: selectedImageId,
+                selectedImageDetails: selectedImageDetails
             };
 
             try {
@@ -281,7 +213,7 @@ const products = [
 
                     // Reset form
                     (e.target as HTMLFormElement).reset();
-                    selectedProducts = [];
+                    selectedImageId = null;
                     updateUI();
                 } else {
                     alert('Fehler beim Senden der Anfrage: ' + result.error);
