@@ -61,12 +61,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                                Gewähltes Bild
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Name
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                E-Mail
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Bestellnummer
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -110,10 +104,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     interface Order {
         id: string;
         orderNumber: string;
-        name: string;
         email: string;
-        phone: string;
-        message: string;
         selectedImage: number;
         selectedImageDetails: any;
         timestamp: string;
@@ -244,59 +235,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.selectedImageDetails?.title || `Bild ${order.selectedImage}`}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.name}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.email}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.orderNumber}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.formattedDate}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button class="text-blue-600 hover:text-blue-900 view-order" data-order-id="${order.id}">
-                            Anzeigen
-                        </button>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
-
-            document.querySelectorAll('.view-order').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const orderId = (e.target as HTMLElement).getAttribute('data-order-id');
-                    showOrderDetails(orderId!);
-                });
-            });
         }
-
         document.getElementById('loading')?.classList.add('hidden');
-    }
-
-    function showOrderDetails(orderId: string) {
-        const order = orders.find(o => o.id === orderId);
-        if (!order) return;
-
-        const modalContent = document.getElementById('modal-content')!;
-        modalContent.innerHTML = `
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <h4 class="font-semibold text-gray-900 mb-2">Bestellinformationen</h4>
-                    <p><strong>Bestellnummer:</strong> ${order.orderNumber}</p>
-                    <p><strong>Datum:</strong> ${order.formattedDate}</p>
-                    <p><strong>Gewähltes Bild:</strong> ${order.selectedImageDetails?.title || `Bild ${order.selectedImage}`}</p>
-                </div>
-                <div>
-                    <h4 class="font-semibold text-gray-900 mb-2">Kontaktdaten</h4>
-                    <p><strong>Name:</strong> ${order.name}</p>
-                    <p><strong>E-Mail:</strong> ${order.email}</p>
-                    <p><strong>Telefon:</strong> ${order.phone || 'Nicht angegeben'}</p>
-                </div>
-            </div>
-            ${order.message ? `
-                <div class="mt-6">
-                    <h4 class="font-semibold text-gray-900 mb-2">Nachricht</h4>
-                    <p class="bg-gray-50 p-3 rounded">${order.message}</p>
-                </div>
-            ` : ''}
-        `;
-
-        document.getElementById('order-modal')?.classList.remove('hidden');
     }
 
     document.addEventListener('DOMContentLoaded', () => {

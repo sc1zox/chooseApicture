@@ -90,10 +90,7 @@ export const handler: Handler = async (event: { httpMethod: string; body: any; }
         return {
           id: submission.id,
           orderNumber: data['order-number'] || `ORD-${submission.number}`,
-          name: data.name || '',
           email: data.email || '',
-          phone: data.phone || '',
-          message: data.message || '',
           selectedImage: selectedImage,
           selectedImageDetails: selectedImageDetails,
           timestamp: submission.created_at,
@@ -144,10 +141,7 @@ export const handler: Handler = async (event: { httpMethod: string; body: any; }
       const order = {
         id: Date.now().toString(),
         timestamp: new Date().toISOString(),
-        name: data.name,
         email: data.email,
-        phone: data.phone || '',
-        message: data.message || '',
         selectedImage: data.selectedImage,
         selectedImageDetails: data.selectedImageDetails || {},
         orderNumber: orderNumber
@@ -156,10 +150,7 @@ export const handler: Handler = async (event: { httpMethod: string; body: any; }
       // Netlify Forms Submission
       const formData = new FormData();
       formData.append('form-name', 'orders');
-      formData.append('name', order.name);
       formData.append('email', order.email);
-      formData.append('phone', order.phone);
-      formData.append('message', order.message);
       formData.append('selected-image', order.selectedImage.toString());
       formData.append('selected-image-details', JSON.stringify(order.selectedImageDetails));
       formData.append('order-number', order.orderNumber);

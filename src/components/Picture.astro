@@ -19,10 +19,7 @@ const images = [
 
 <!-- Netlify Forms Hidden Form -->
 <form name="orders" netlify hidden>
-    <input type="text" name="name" />
     <input type="email" name="email" />
-    <input type="tel" name="phone" />
-    <textarea name="message"></textarea>
     <input type="text" name="selected-image" />
     <input type="text" name="selected-image-details" />
     <input type="text" name="order-number" />
@@ -62,24 +59,9 @@ const images = [
         <h3 class="text-lg font-semibold mb-4">Ihre Kontaktdaten:</h3>
         <form id="order-form" class="space-y-4">
             <div>
-                <label for="name" class="block text-sm font-medium text-base-700">Name *</label>
-                <input type="text" id="name" name="name" required
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-3 py-2 border">
-            </div>
-            <div>
                 <label for="email" class="block text-sm font-medium text-base-700">E-Mail *</label>
-                <input type="email" id="email" name="email" required
+                <input type="email" id="email" name="email" required placeholder="vorname.nachname@hul-coburg.de"
                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-3 py-2 border">
-            </div>
-            <div>
-                <label for="phone" class="block text-sm font-medium text-base-700">Telefon</label>
-                <input type="tel" id="phone" name="phone"
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-3 py-2 border">
-            </div>
-            <div>
-                <label for="message" class="block text-sm font-medium text-base-700">Nachricht (optional)</label>
-                <textarea id="message" name="message" rows="3"
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-3 py-2 border"></textarea>
             </div>
             <button type="submit" id="submit-btn"
                     class="w-full bg-orange-600 text-white py-2 px-4 rounded-md hover:bg-orange-700 transition-colors duration-300">
@@ -186,10 +168,7 @@ const images = [
             };
 
             const orderData = {
-                name: formData.get('name'),
                 email: formData.get('email'),
-                phone: formData.get('phone'),
-                message: formData.get('message'),
                 selectedImage: selectedImageId,
                 selectedImageDetails: selectedImageDetails
             };
