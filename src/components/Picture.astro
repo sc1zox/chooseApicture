@@ -61,7 +61,12 @@ const images = [
             <div>
                 <label for="email" class="block text-sm font-medium text-base-700">E-Mail *</label>
                 <input type="email" id="email" name="email" required placeholder="vorname.nachname@huk-coburg.de"
+                       pattern="[a-zA-Z]+\.[a-zA-Z]+@huk-coburg\.de"
+                       title="Bitte geben Sie eine gültige HUK-Coburg E-Mail-Adresse ein (vorname.nachname@huk-coburg.de)"
                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-3 py-2 border">
+                <div id="email-error" class="text-red-600 text-sm mt-1 hidden">
+                    Bitte geben Sie eine gültige HUK-Coburg E-Mail-Adresse ein (vorname.nachname@huk-coburg.de)
+                </div>
             </div>
             <button type="submit" id="submit-btn"
                     class="w-full bg-orange-600 text-white py-2 px-4 rounded-md hover:bg-orange-700 transition-colors duration-300">
@@ -102,6 +107,26 @@ const images = [
         updateUI();
     }
 
+    function validateEmail(email: string): boolean {
+        const emailRegex = /^[a-zA-Z]+\.[a-zA-Z]+@huk-coburg\.de$/;
+        return emailRegex.test(email);
+    }
+
+    function showEmailError(show: boolean): void {
+        const emailError = document.getElementById('email-error');
+        const emailInput = document.getElementById('email') as HTMLInputElement;
+        
+        if (show) {
+            emailError?.classList.remove('hidden');
+            emailInput?.classList.add('border-red-500');
+            emailInput?.classList.remove('border-gray-300');
+        } else {
+            emailError?.classList.add('hidden');
+            emailInput?.classList.remove('border-red-500');
+            emailInput?.classList.add('border-gray-300');
+        }
+    }
+
     function updateUI(): void {
         // Update selection indicators
         document.querySelectorAll('.image-item').forEach(item => {
@@ -139,6 +164,26 @@ const images = [
 
     // Event listeners
     document.addEventListener('DOMContentLoaded', () => {
+        const emailInput = document.getElementById('email') as HTMLInputElement;
+        
+        // E-Mail-Validierung bei Eingabe
+        emailInput?.addEventListener('input', (e) => {
+            const email = (e.target as HTMLInputElement).value;
+            if (email && !validateEmail(email)) {
+                showEmailError(true);
+            } else {
+                showEmailError(false);
+            }
+        });
+
+        // E-Mail-Validierung bei Focus verlassen
+        emailInput?.addEventListener('blur', (e) => {
+            const email = (e.target as HTMLInputElement).value;
+            if (email && !validateEmail(email)) {
+                showEmailError(true);
+            }
+        });
+
         document.querySelectorAll('.image-item').forEach(item => {
             item.addEventListener('click', () => {
                 const imageId = parseInt(item.getAttribute('data-image-id') || '0');
@@ -155,12 +200,21 @@ const images = [
                 return;
             }
 
+            const formData = new FormData(e.target as HTMLFormElement);
+            const email = formData.get('email') as string;
+
+            // E-Mail-Validierung vor dem Senden
+            if (!validateEmail(email)) {
+                showEmailError(true);
+                alert('Bitte geben Sie eine gültige HUK-Coburg E-Mail-Adresse ein (vorname.nachname@huk-coburg.de)');
+                return;
+            }
+
             const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
             const originalText = submitBtn.textContent;
             submitBtn.textContent = 'Wird gesendet...';
             submitBtn.disabled = true;
 
-            const formData = new FormData(e.target as HTMLFormElement);
             const selectedImage = images.find(img => img.id === selectedImageId);
             const selectedImageDetails = {
                 id: selectedImage?.id,
@@ -168,7 +222,7 @@ const images = [
             };
 
             const orderData = {
-                email: formData.get('email'),
+                email: email,
                 selectedImage: selectedImageId,
                 selectedImageDetails: selectedImageDetails
             };
@@ -194,6 +248,7 @@ const images = [
                     (e.target as HTMLFormElement).reset();
                     selectedImageId = null;
                     updateUI();
+                    showEmailError(false);
                 } else {
                     alert('Fehler beim Senden der Anfrage: ' + result.error);
                 }
